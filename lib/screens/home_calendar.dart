@@ -3,8 +3,10 @@ import 'package:flutter_calendar_carousel/classes/event.dart';
 import 'package:flutter_calendar_carousel/classes/event_list.dart';
 import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart'
     show CalendarCarousel;
+import 'package:get/get.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:provider/provider.dart';
+import 'package:wecount/controllers/ledger_controller.dart';
 import 'package:wecount/mocks/home_calendar.mock.dart';
 import 'package:wecount/models/ledger_item.dart';
 import 'package:wecount/providers/current_ledger.dart';
@@ -15,68 +17,67 @@ import 'package:wecount/shared/home_header.dart' show HomeHeaderExpanded;
 import 'package:wecount/shared/home_list_item.dart';
 import 'package:wecount/types/color.dart';
 import 'package:wecount/utils/colors.dart';
-import 'package:wecount/utils/general.dart';
 
 class HomeCalendar extends StatefulWidget {
   const HomeCalendar({
     Key? key,
-    this.title = '2017 Wecount',
   }) : super(key: key);
-  final String title;
 
   @override
   State<HomeCalendar> createState() => _HomeCalendarState();
 }
 
 class _HomeCalendarState extends State<HomeCalendar> {
+  final LedgerController _ledgerController = Get.put(LedgerController());
+
   @override
   Widget build(BuildContext context) {
-    var color = Provider.of<CurrentLedger>(context).getLedger() != null
-        ? Provider.of<CurrentLedger>(context).getLedger()!.color
-        : ColorType.dusk;
-
     return Scaffold(
       backgroundColor: Theme.of(context).backgroundColor,
-      body: CustomScrollView(
-        slivers: <Widget>[
-          HomeHeaderExpanded(
-            title: widget.title,
-            color: getColor(color),
-            actions: [
-              SizedBox(
-                width: 56.0,
-                child: RawMaterialButton(
-                  padding: const EdgeInsets.all(0.0),
-                  shape: const CircleBorder(),
-                  onPressed: () => General.instance
-                      .navigateScreenNamed(context, Ledgers.name),
-                  child: const Icon(
-                    Icons.book,
-                    color: Colors.white,
+      body: Obx(
+        () => CustomScrollView(
+          slivers: <Widget>[
+            HomeHeaderExpanded(
+              title: _ledgerController.selectedLedger.value!.title,
+              color: getColor(_ledgerController.selectedLedger.value!.color),
+              actions: [
+                SizedBox(
+                  width: 56.0,
+                  child: RawMaterialButton(
+                    padding: const EdgeInsets.all(0.0),
+                    shape: const CircleBorder(),
+                    onPressed: () => Get.to(
+                      () => const Ledgers(),
+                    ),
+                    child: const Icon(
+                      Icons.book,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(
-                width: 56.0,
-                child: RawMaterialButton(
-                  padding: const EdgeInsets.all(0.0),
-                  shape: const CircleBorder(),
-                  onPressed: () =>
-                      Navigator.of(context).pushNamed(LedgerItemEdit.name),
-                  child: const Icon(
-                    Icons.add,
-                    color: Colors.white,
+                SizedBox(
+                  width: 56.0,
+                  child: RawMaterialButton(
+                    padding: const EdgeInsets.all(0.0),
+                    shape: const CircleBorder(),
+                    onPressed: () => Get.to(
+                      () => const LedgerItemEdit(),
+                    ),
+                    child: const Icon(
+                      Icons.add,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          SliverList(
-            delegate: SliverChildListDelegate([
-              const MyHomePage(),
-            ]),
-          )
-        ],
+              ],
+            ),
+            SliverList(
+              delegate: SliverChildListDelegate([
+                const MyHomePage(),
+              ]),
+            )
+          ],
+        ),
       ),
     );
   }
@@ -97,10 +98,10 @@ class _MyHomePageState extends State<MyHomePage> {
   EventList<Event>? _markedDateMap;
 
   /// ledgerList from parents
-  List<LedgerItem> _ledgerList = [];
+  List<LedgerItemModel> _ledgerList = [];
 
   /// for bottom list UI
-  final List<LedgerItem> _ledgerListOfSelectedDate = [];
+  final List<LedgerItemModel> _ledgerListOfSelectedDate = [];
 
   void selectDate(
     DateTime date,
@@ -126,11 +127,17 @@ class _MyHomePageState extends State<MyHomePage> {
     _currentMonth = DateFormat.yMMM().format(_currentDate!);
 
     Future.delayed(Duration.zero, () {
-      List<LedgerItem> ledgerList = createCalendarLedgerItemMock();
+      List<LedgerItemModel> ledgerList = createCalendarLedgerItemMock();
       EventList<Event>? markedDateMap = EventList(events: {});
+
       for (var ledger in ledgerList) {
-        markedDateMap.add(ledger.selectedDate!,
-            Event(date: ledger.selectedDate!, title: ledger.category!.label));
+        markedDateMap.add(
+          ledger.selectedDate!,
+          Event(
+            date: ledger.selectedDate!,
+            title: ledger.category!.label,
+          ),
+        );
       }
 
       setState(() {
@@ -142,8 +149,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    var color = Provider.of<CurrentLedger>(context).getLedger() != null
-        ? Provider.of<CurrentLedger>(context).getLedger()!.color
+    var color = Provider.of<CurrentLedger>(context).ledger != null
+        ? Provider.of<CurrentLedger>(context).ledger!.color
         : ColorType.dusk;
 
     void onDatePressed() async {

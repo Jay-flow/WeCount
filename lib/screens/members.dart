@@ -1,16 +1,18 @@
-import 'package:wecount/shared/edit_text.dart';
 import 'package:flutter/material.dart';
-
+import 'package:get/get.dart';
+import 'package:wecount/models/ledger_model.dart';
+import 'package:wecount/models/user_model.dart';
+import 'package:wecount/screens/empty.dart';
 import 'package:wecount/screens/profile_peer.dart';
-import 'package:wecount/utils/general.dart';
-import 'package:wecount/shared/member_list_item.dart';
+import 'package:wecount/shared/edit_text.dart';
 import 'package:wecount/shared/header.dart';
-import 'package:wecount/models/user.dart';
-import 'package:wecount/models/ledger.dart';
+import 'package:wecount/shared/member_list_item.dart';
+import 'package:wecount/utils/general.dart';
 import 'package:wecount/utils/localization.dart';
 
 class Members extends StatefulWidget {
-  final Ledger? ledger;
+  final LedgerModel? ledger;
+
   const Members({
     Key? key,
     this.ledger,
@@ -29,7 +31,7 @@ class _MembersState extends State<Members> {
       numOfPeople: 4,
     ),
     MemberItem(
-      User(
+      UserModel(
         displayName: 'displayName',
         email: 'email@email.com',
         thumbURL: 'url',
@@ -37,7 +39,7 @@ class _MembersState extends State<Members> {
       ),
     ),
     MemberItem(
-      User(
+      UserModel(
         displayName: 'displayName',
         email: 'email@email.com',
         thumbURL: 'url',
@@ -45,7 +47,7 @@ class _MembersState extends State<Members> {
       ),
     ),
     MemberItem(
-      User(
+      UserModel(
         displayName: 'displayName',
         email: 'email@email.com',
         thumbURL: 'url',
@@ -53,7 +55,7 @@ class _MembersState extends State<Members> {
       ),
     ),
     MemberItem(
-      User(
+      UserModel(
         displayName: 'displayName',
         email: 'email@email.com',
         thumbURL: 'url',
@@ -61,7 +63,7 @@ class _MembersState extends State<Members> {
       ),
     ),
     MemberItem(
-      User(
+      UserModel(
         displayName: 'displayName',
         email: 'email@email.com',
         thumbURL: 'url',
@@ -69,7 +71,7 @@ class _MembersState extends State<Members> {
       ),
     ),
     MemberItem(
-      User(
+      UserModel(
         displayName: 'displayName',
         email: 'email@email.com',
         thumbURL: 'url',
@@ -77,7 +79,7 @@ class _MembersState extends State<Members> {
       ),
     ),
     MemberItem(
-      User(
+      UserModel(
         displayName: 'displayName',
         email: 'email@email.com',
         thumbURL: 'url',
@@ -85,7 +87,7 @@ class _MembersState extends State<Members> {
       ),
     ),
     MemberItem(
-      User(
+      UserModel(
         displayName: 'displayName',
         email: 'email@email.com',
         thumbURL: 'url',
@@ -93,7 +95,7 @@ class _MembersState extends State<Members> {
       ),
     ),
     MemberItem(
-      User(
+      UserModel(
         displayName: 'displayName',
         email: 'email@email.com',
         thumbURL: 'url',
@@ -111,19 +113,16 @@ class _MembersState extends State<Members> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).backgroundColor,
       appBar: renderHeaderClose(
         context: context,
-        brightness: Theme.of(context).brightness,
         actions: [
           SizedBox(
             width: 56,
-            child: RawMaterialButton(
-              padding: const EdgeInsets.all(0.0),
-              shape: const CircleBorder(),
-              onPressed: () {
+            child: InkWell(
+              onTap: () {
                 setState(() {
                   _isSearchMode = !_isSearchMode;
+
                   if (!_isSearchMode) {
                     _filteredMembers = _fakeMembers;
                   }
@@ -131,7 +130,6 @@ class _MembersState extends State<Members> {
               },
               child: Icon(
                 Icons.search,
-                color: Theme.of(context).textTheme.headline1!.color,
                 semanticLabel: t('SEARCH'),
               ),
             ),
@@ -143,10 +141,8 @@ class _MembersState extends State<Members> {
         itemBuilder: (context, index) {
           final item = _filteredMembers[index];
           if (item is HeadingItem) {
-            return Container(
-              height: 80,
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              alignment: const Alignment(-1, 0),
+            return Padding(
+              padding: const EdgeInsets.all(20),
               child: _isSearchMode
                   ? EditText(
                       key: const Key('member'),
@@ -179,29 +175,32 @@ class _MembersState extends State<Members> {
                     ),
             );
           } else if (item is MemberItem) {
-            return MemberListItem(
-              user: item.user,
-              onPressAuth: () {
-                General.instance.showMembershipDialog(context, (int? val) {
-                  setState(() {
-                    item.user.changeMemberShip(val!);
-                  });
-                  Navigator.of(context).pop();
-                }, item.user.membership!.index);
-              },
-              onPressMember: () {
-                General.instance.navigateScreen(
-                  context,
-                  MaterialPageRoute(
-                    builder: (BuildContext context) => ProfilePeer(
-                      user: item.user,
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: MemberListItem(
+                user: item.user,
+                onPressAuth: () {
+                  General.instance.showMembershipDialog(context, (int? val) {
+                    setState(() {
+                      item.user.changeMemberShip(val!);
+                    });
+                    Get.back();
+                  }, item.user.membership!.index);
+                },
+                onPressMember: () {
+                  General.instance.navigateScreen(
+                    context,
+                    MaterialPageRoute(
+                      builder: (BuildContext context) => ProfilePeer(
+                        user: item.user,
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             );
           }
-          return Container();
+          return const Empty();
         },
       ),
     );

@@ -1,71 +1,35 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:wecount/models/ledger.dart';
+import 'package:get/get.dart';
+import 'package:wecount/controllers/user_controller.dart';
 import 'package:wecount/navigations/home_tab.dart' show HomeTab;
-import 'package:wecount/providers/current_ledger.dart';
-import 'package:wecount/screens/main_empty.dart' show MainEmpty;
 import 'package:wecount/screens/tutorial.dart' show Tutorial;
-import 'package:wecount/services/database.dart';
-import 'package:wecount/utils/localization.dart';
+import 'package:wecount/shared/circle_loading_indicator.dart';
 
-class AuthSwitch extends StatelessWidget {
+class AuthSwitch extends StatefulWidget {
   static const String name = '/auth_switch';
 
   const AuthSwitch({Key? key}) : super(key: key);
 
-  Widget renderMainLedger(User user) {
-    final DatabaseService db = DatabaseService();
+  @override
+  State<AuthSwitch> createState() => _AuthSwitchState();
+}
 
-    return StreamProvider<List<Ledger>>.value(
-      value: db.streamMyLedgers(user),
-      initialData: const [],
-      child: Consumer<List<Ledger>>(
-        builder: (context, ledgers, child) {
-          return FutureBuilder(
-            future: DatabaseService().fetchSelectedLedger(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                if (ledgers.isEmpty) {
-                  return const MainEmpty();
-                }
+class _AuthSwitchState extends State<AuthSwitch> {
+  @override
+  void initState() {
+    super.initState();
 
-                if (snapshot.hasData) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    Provider.of<CurrentLedger>(context, listen: false)
-                        .setLedger(snapshot.data as Ledger);
-                  });
-                }
-
-                return const HomeTab();
-              }
-
-              return Scaffold(
-                body: Center(
-                  child: CircularProgressIndicator(
-                    semanticsLabel: t('LOADING'),
-                    backgroundColor: Theme.of(context).primaryColor,
-                    strokeWidth: 2,
-                    valueColor:
-                        const AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!UserController().isSignIn()) {
+        Get.offAll(() => const Tutorial());
+      } else {
+        Get.offAll(() => const HomeTab());
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    User? user = Provider.of<User?>(context);
-
-    if (user != null && user.emailVerified) {
-      return renderMainLedger(user);
-    }
-
-    return const Tutorial();
+    return const CircleLoadingIndicator();
   }
 }

@@ -1,54 +1,35 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:wecount/models/user.dart';
+import 'package:get/get.dart';
+import 'package:wecount/models/user_model.dart';
+import 'package:wecount/screens/search_user.dart';
 import 'package:wecount/services/database.dart';
+import 'package:wecount/shared/network_image_loader.dart';
 import 'package:wecount/utils/asset.dart' as asset;
 import 'package:wecount/utils/localization.dart';
 
 import '../screens/empty.dart';
+import '../utils/alert.dart';
 
 class MemberHorizontalList extends StatelessWidget {
   final bool? showAddBtn;
   final void Function()? onSeeAllPressed;
-
+  final Color backgroundColor;
   final List<String> memberIds;
+  final dynamic Function(List<String> memberIds)? onMemberChanged;
 
   const MemberHorizontalList({
     Key? key,
     this.showAddBtn,
     this.onSeeAllPressed,
+    required this.backgroundColor,
     this.memberIds = const [],
+    this.onMemberChanged,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> memberWidgets = memberIds.map((memberId) {
-      return StreamBuilder(
-        stream: DatabaseService().streamUser(memberId),
-        builder: (BuildContext context, AsyncSnapshot<User> snapshot) {
-          return Container(
-            margin: const EdgeInsets.only(left: 8),
-            child: Material(
-                clipBehavior: Clip.hardEdge,
-                color: Colors.transparent,
-                child: Ink.image(
-                  image: (!snapshot.hasData ||
-                          (snapshot.data!.photoURL == null &&
-                              snapshot.data!.thumbURL == null)
-                      ? asset.Icons.icMask
-                      : NetworkImage(snapshot.data!.thumbURL != null
-                          ? snapshot.data!.thumbURL!
-                          : snapshot.data!.photoURL!)) as ImageProvider<Object>,
-                  fit: BoxFit.cover,
-                  width: 48.0,
-                  height: 48.0,
-                  child: InkWell(
-                    onTap: () {},
-                  ),
-                )),
-          );
-        },
-      );
-    }).toList();
+    double memberIconLeftMargin = 0;
 
     return Column(
       children: <Widget>[
@@ -79,18 +60,72 @@ class MemberHorizontalList extends StatelessWidget {
             ),
           ],
         ),
-        SizedBox(
-          height: 50,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: <Widget>[
-              showAddBtn == true
-                  ? Material(
-                      clipBehavior: Clip.hardEdge,
-                      color: Colors.transparent,
+        Row(
+          children: [
+            memberIds.isEmpty
+                ? const Empty()
+                : Stack(
+                    children: memberIds.take(4).mapIndexed((index, memberId) {
+                      if (index > 0) {
+                        memberIconLeftMargin += memberIds.length <= 3 ? 52 : 37;
+                      }
+
+                      return Container(
+                        width: 55,
+                        height: 55,
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: backgroundColor,
+                          shape: BoxShape.circle,
+                        ),
+                        margin: EdgeInsets.only(
+                          left: memberIconLeftMargin,
+                          right: 5,
+                        ),
+                        child: index < 3
+                            ? StreamBuilder(
+                                stream: DatabaseService().streamUser(memberId),
+                                builder: (BuildContext context,
+                                    AsyncSnapshot<UserModel> snapshot) {
+                                  return NetworkImageLoader(
+                                    imageURL: snapshot.data?.thumbURL ??
+                                        snapshot.data?.photoURL,
+                                    emptyImage: Image(
+                                      image: asset.Icons.icMask,
+                                    ),
+                                  );
+                                },
+                              )
+                            : Container(
+                                width: 50,
+                                height: 50,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    width: 1.0,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    "+ ${memberIds.length}",
+                                    style: TextStyle(
+                                      color: backgroundColor,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                      );
+                    }).toList(),
+                  ),
+            showAddBtn == true
+                ? Expanded(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
                       child: Container(
-                        width: 48,
-                        height: 48,
+                        width: 45,
+                        height: 45,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
@@ -99,20 +134,37 @@ class MemberHorizontalList extends StatelessWidget {
                           ),
                         ),
                         child: InkWell(
+                          customBorder: const CircleBorder(),
                           child: const Icon(
                             Icons.add,
                             color: Colors.white,
                           ),
-                          onTap: () {},
+                          onTap: () async {
+                            UserModel? user =
+                                await Get.to(() => const SearchUser());
+
+                            if (user != null) {
+                              if (memberIds.contains(user.uid!)) {
+                                return alert(
+                                  t('ALREADY_MEMBER_WARNING'),
+                                  colorText: Colors.white,
+                                );
+                              }
+
+                              if (onMemberChanged != null) {
+                                onMemberChanged!([
+                                  ...memberIds,
+                                  user.uid!,
+                                ]);
+                              }
+                            }
+                          },
                         ),
                       ),
-                    )
-                  : const Empty(),
-              Row(
-                children: memberWidgets,
-              ),
-            ],
-          ),
+                    ),
+                  )
+                : const Empty(),
+          ],
         )
       ],
     );
