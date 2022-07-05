@@ -62,46 +62,19 @@ class _HomeTabState extends State<HomeTab> {
             () => _ledgerController.selectedLedger.value == null
                 ? const MainEmpty()
                 : Scaffold(
-                    body: Stack(
-                      children: <Widget>[
-                        Offstage(
-                          offstage: _index != 0,
-                          child: TickerMode(
-                            enabled: _index == 0,
-                            child: const HomeCalendar(),
-                          ),
-                        ),
-                        Offstage(
-                          offstage: _index != 1,
-                          child: TickerMode(
-                            enabled: _index == 1,
-                            child: const HomeList(),
-                          ),
-                        ),
-                        Offstage(
-                          offstage: _index != 2,
-                          child: TickerMode(
-                            enabled: _index == 2,
-                            child: const HomeStatistic(title: ''),
-                          ),
-                        ),
-                        Offstage(
-                          offstage: _index != 3,
-                          child: TickerMode(
-                            enabled: _index == 3,
-                            child: const HomeSetting(
-                              title: '',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                    body: const [
+                      HomeCalendar(),
+                      HomeList(),
+                      HomeStatistic(),
+                      HomeSetting(),
+                    ].elementAt(_index),
                     bottomNavigationBar: BottomNavigationBar(
-                      type: BottomNavigationBarType.shifting,
+                      type: BottomNavigationBarType.fixed,
+                      selectedItemColor: Theme.of(context).primaryColor,
+                      showSelectedLabels: false,
+                      showUnselectedLabels: false,
                       currentIndex: _index,
                       onTap: (int index) => setState(() => _index = index),
-                      selectedItemColor:
-                          Theme.of(context).textTheme.headline1!.color,
                       unselectedItemColor:
                           Theme.of(context).textTheme.headline1!.color,
                       items: <BottomNavigationBarItem>[
@@ -124,7 +97,7 @@ class _HomeTabState extends State<HomeTab> {
                         BottomNavigationBarItem(
                           backgroundColor: Theme.of(context).bottomAppBarColor,
                           icon: const Icon(
-                            Icons.graphic_eq,
+                            Icons.pie_chart,
                             size: 20.0,
                           ),
                           label: 'Statistic',
