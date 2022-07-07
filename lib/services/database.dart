@@ -24,29 +24,6 @@ class DatabaseService {
           );
   get _currentUser => FirebaseAuth.instance.currentUser;
 
-  Future<bool> requestCreateNewLedger(LedgerModel ledger) async {
-    DocumentReference ref =
-        await FirebaseFirestore.instance.collection('ledgers').add({
-      'title': ledger.title,
-      'color': ledger.color.index,
-      'description': ledger.description,
-      'ownerId': ledger.ownerId,
-      'adminIds': FieldValue.arrayUnion(ledger.adminIds),
-      'currency': ledger.currency.currency,
-      'currencyLocale': ledger.currency.locale,
-      'currencySymbol': ledger.currency.symbol,
-      'memberIds': ledger.memberIds,
-    });
-
-    await _userRef.doc(_currentUser.uid).collection('ledgers').doc(ref.id).set({
-      'id': ref.id,
-    });
-
-    await _userRef.doc(_currentUser.uid).update({'selectedLedgerId': ref.id});
-
-    return true;
-  }
-
   Future<bool> requestUpdateLedger(LedgerModel? ledger) async {
     if (_currentUser == null) {
       logger.d('user is not sign-in');

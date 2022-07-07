@@ -94,20 +94,15 @@ class LedgerModel {
 
   Map<String, Object?> toJson() {
     return {
-      'id': id,
       'title': title,
-      'color': color,
+      'color': color.index,
       'description': description,
       'people': people,
       'ownerId': ownerId,
-      'adminIds': adminIds,
       'items': items,
-      'currency': currency,
-      'memberIds': memberIds,
-      'members': members,
-      'createdAt': createdAt,
-      'updatedAt': updatedAt,
-      'deletedAt': deletedAt,
+      'currency': currency.currency,
+      'currencyLocale': currency.locale,
+      'currencySymbol': currency.symbol,
     };
   }
 

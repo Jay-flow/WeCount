@@ -1,8 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:wecount/controllers/ledger_controller.dart';
+import 'package:wecount/controllers/user_controller.dart';
 import 'package:wecount/models/currency_model.dart';
 import 'package:wecount/models/ledger_model.dart';
 import 'package:wecount/screens/empty.dart';
@@ -12,6 +13,7 @@ import 'package:wecount/services/database.dart' show DatabaseService;
 import 'package:wecount/shared/header.dart' show renderHeaderBack;
 import 'package:wecount/shared/member_horizontal_list.dart';
 import 'package:wecount/types/color.dart';
+import 'package:wecount/utils/alert.dart';
 import 'package:wecount/utils/general.dart';
 import 'package:wecount/utils/logger.dart';
 
@@ -42,6 +44,7 @@ class LedgerEdit extends StatefulWidget {
 
 class _LedgerEditState extends State<LedgerEdit> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final LedgerController _ledgerController = Get.put(LedgerController());
   late LedgerModel _ledger;
   final double _paddingHorizontal = 25;
 
@@ -96,7 +99,7 @@ class _LedgerEditState extends State<LedgerEdit> {
 
       try {
         if (widget.mode == LedgerEditMode.add) {
-          await createNewLedger();
+          await createLedger();
         } else if (widget.mode == LedgerEditMode.update) {
           final DatabaseService db = DatabaseService();
           await db.requestUpdateLedger(_ledger);
@@ -109,26 +112,24 @@ class _LedgerEditState extends State<LedgerEdit> {
         Get.back();
       } catch (err) {
         logger.e('err: $err');
+        alertError(t("LEDGER_ADD_ERROR"));
       } finally {
         setState(() => _isLoading = false);
       }
     }
   }
 
-  Future<void> createNewLedger() async {
-    final DatabaseService db = DatabaseService();
-    User? user = FirebaseAuth.instance.currentUser;
+  Future<void> createLedger() async {
+    String? userId = UserController.to.currentUser.uid;
 
-    if (user != null) {
-      _ledger.ownerId = user.uid;
-      _ledger.adminIds = [];
-      _ledger.memberIds = [
-        ..._ledger.memberIds,
-        user.uid,
-      ];
+    _ledger.ownerId = userId;
+    _ledger.adminIds = [];
+    _ledger.memberIds = [
+      ..._ledger.memberIds,
+      userId,
+    ];
 
-      await db.requestCreateNewLedger(_ledger);
-    }
+    await _ledgerController.createLedger(_ledger);
   }
 
   String? _validateFiled(String inputString) {

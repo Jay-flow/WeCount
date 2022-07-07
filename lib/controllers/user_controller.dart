@@ -8,7 +8,7 @@ class UserController extends GetxController {
 
   static UserController get to => Get.find();
 
-  final CollectionReference<UserModel> _userRef =
+  final CollectionReference<UserModel> userRef =
       FirebaseFirestore.instance.collection('users').withConverter<UserModel>(
             fromFirestore: (snapshot, _) => UserModel.fromJson(
               snapshot.data(),
@@ -17,13 +17,22 @@ class UserController extends GetxController {
             toFirestore: (user, _) => user.toJson(),
           );
 
-  get _currentUser => FirebaseAuth.instance.currentUser;
+  User get currentUser {
+    User? user = FirebaseAuth.instance.currentUser;
 
-  bool isSignIn() => _currentUser != null;
+    if (user == null) {
+      throw ("Current user not found.");
+    }
+
+    return FirebaseAuth.instance.currentUser!;
+  }
+
+  bool isSignIn() => FirebaseAuth.instance.currentUser != null;
 
   void listenUser(
-          void Function(DocumentSnapshot<UserModel> snapshot) onUserChanged) =>
-      _userRef.doc(_currentUser.uid).snapshots().listen(
-            onUserChanged,
-          );
+      void Function(DocumentSnapshot<UserModel> snapshot) onUserChanged) {
+    userRef.doc(currentUser.uid).snapshots().listen(
+          onUserChanged,
+        );
+  }
 }

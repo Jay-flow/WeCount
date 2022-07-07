@@ -154,6 +154,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "INTRO": MessageLookupByLibrary.simpleMessage("앱을 만들어봐요!"),
         "INVITE": MessageLookupByLibrary.simpleMessage("초대하기"),
         "LEAVE": MessageLookupByLibrary.simpleMessage("나가기"),
+        "LEDGER_ADD_ERROR":
+            MessageLookupByLibrary.simpleMessage("가계부를 추가하지 못했습니다. 다시 시도해주세요."),
         "LEDGER_DESCRIPTION_HINT":
             MessageLookupByLibrary.simpleMessage("가계부에 대한 설명을 입력해주세요."),
         "LEDGER_NAME_HINT":

@@ -1620,6 +1620,16 @@ class S {
     );
   }
 
+  /// `There was an error while adding ledger. Please try again.`
+  String get LEDGER_ADD_ERROR {
+    return Intl.message(
+      'There was an error while adding ledger. Please try again.',
+      name: 'LEDGER_ADD_ERROR',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Successfully deleted category.`
   String get CATEGORY_DELETED {
     return Intl.message(

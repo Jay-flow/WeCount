@@ -166,6 +166,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "INTRO": MessageLookupByLibrary.simpleMessage("Create App!"),
         "INVITE": MessageLookupByLibrary.simpleMessage("Invite"),
         "LEAVE": MessageLookupByLibrary.simpleMessage("Leave"),
+        "LEDGER_ADD_ERROR": MessageLookupByLibrary.simpleMessage(
+            "There was an error while adding ledger. Please try again."),
         "LEDGER_DESCRIPTION_HINT": MessageLookupByLibrary.simpleMessage(
             "Please write description of ledger"),
         "LEDGER_NAME_HINT": MessageLookupByLibrary.simpleMessage(
